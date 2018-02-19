@@ -1,33 +1,26 @@
-var d2xy = function(d, N) {
+function d2xy(d, n) {
     var [x, y] = [0, 0];
-    var index = d;
-    var pos = [[0,0],[0,1],[1,1],[1,0]];
+    var t = d;
 
-    for(var n = 1; n < N; n *= 2) {
-        var twoBits = index & 3;
-        var index = index >>> 2;
-               
-         if (n === 1) {
-            [x,y] = pos[twoBits];
-         } else {
-            switch(twoBits) {
-                case 0:
-                    [x, y] = [y, x];
-                    break;
-                case 1:
-                    [x, y] = [x, y + n];
-                    break;
-                case 2:
-                    [x, y] = [x + n, y + n];
-                    break;
-                case 3:
-                    [x, y] = [2 * n - 1 - y, n - 1 - x];
-                    break;
-            }             
-        }
+    for(var s = 1; s < n; s *= 2) {
+        var regionX = (t >> 1) & 1; // second bit is set
+        var regionY = (t ^ regionX) & 1; // first bit XOR second bit
+        [x, y] = rotate(s, x, y, regionX, regionY);
+        [x, y] = [x + s * regionX, y + s * regionY];
+        t = t >>> 2;
     }
+    
     return [x, y];
-}
+};
+
+function rotate(n, x, y, regionX, regionY) {
+    if (regionY === 1) 
+        return [x, y]; // leave top regions
+
+    return regionX === 0 
+        ? [y, x] // rotate bottom left
+        : [n - 1 - y, n - 1 - x]; // flip and rotate bottom right
+};
 
 module.exports = {
     d2xy
