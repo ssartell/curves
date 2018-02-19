@@ -15,9 +15,9 @@ function d2xy(d, n) {
 
 function xy2d (n, x, y) {
     var d = 0;
-    for (var s = Math.floor(n / 2); s > 0; s = Math.floor(s / 2)) {
-        var rx = (x & s) > 0 ? 1 : 0;
-        var ry = (y & s) > 0 ? 1 : 0;
+    for (var s = n / 2; s >= 1; s /= 2) {
+        var rx = (x & s) ? 1 : 0;
+        var ry = (y & s) ? 1 : 0;
         d += s * s * ((3 * rx) ^ ry);
         [x, y] = rotate(s, x, y, rx, ry);
     }
