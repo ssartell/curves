@@ -107,3 +107,47 @@ describe('hilbert d2xy', function() {
         });
     });
 });
+
+describe('hilbert xy2d', function() {    
+    describe('N = 2', function() {
+        var N = 2;
+        it('x = 0, y = 0', function() {
+            var d = hilbert.xy2d(N, 0, 0);
+            assert.equal(d, 0);
+        });
+        it('x = 0, y = 1', function() {
+            var d = hilbert.xy2d(N, 0, 1);
+            assert.equal(d, 1);
+        });
+        it('x = 1, y = 1', function() {
+            var d = hilbert.xy2d(N, 1, 1);
+            assert.equal(d, 2);
+        });
+        it('x = 1, y = 0', function() {
+            var d = hilbert.xy2d(N, 1, 0);
+            assert.equal(d, 3);
+        });
+    });
+    describe('N = 4', function() {
+        var N = 4;
+        it('x = 2, y = 1', function() {
+            var d = hilbert.xy2d(N, 1, 2);
+            assert.equal(d, 7);
+        });
+        it('x = 2, y = 0', function() {
+            var d = hilbert.xy2d(N, 2, 0);
+            assert.equal(d, 14);
+        });
+    });
+    describe('N = 8', function() {
+        var N = 8;
+        it('x = 1, y = 5', function() {
+            var d = hilbert.xy2d(N, 1, 5);
+            assert.equal(d, 18);
+        });
+        it('x = 7, y = 1', function() {
+            var d = hilbert.xy2d(N, 7, 1);
+            assert.equal(d, 62);
+        });
+    });
+});
