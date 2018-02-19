@@ -1,3 +1,3 @@
 var hilbert = require('./hilbert');
 
-console.log(hilbert.d2xy(13, 4));
+console.log(hilbert.d2xy(22, 8));

@@ -83,4 +83,27 @@ describe('hilbert d2xy', function() {
             assert.equal(y, 0);
         });
     });
+    describe('N = 8', function() {
+        var N = 8;
+        it('i = 7', function() {
+            var [x, y] = hilbert.d2xy(7, N);
+            assert.equal(x, 2);
+            assert.equal(y, 1);
+        });
+        it('i = 18', function() {
+            var [x, y] = hilbert.d2xy(18, N);
+            assert.equal(x, 1);
+            assert.equal(y, 5);
+        });
+        it('i = 41', function() {
+            var [x, y] = hilbert.d2xy(41, N);
+            assert.equal(x, 6);
+            assert.equal(y, 7);
+        });
+        it('i = 62', function() {
+            var [x, y] = hilbert.d2xy(62, N);
+            assert.equal(x, 7);
+            assert.equal(y, 1);
+        });
+    });
 });
