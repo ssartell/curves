@@ -3,11 +3,11 @@ var d3 = require('d3');
 var R = require('ramda');
 
 var i = 0;
+var min = 1;
+var max = 6;
 var timer = d3.interval(() => {
-    var n = Math.abs(5 - ((i + 5) % 10)) + 1;
-
-    var lines = hilbertLines(n);
-    update(lines);
+    var n = saw(i, [min, max]);
+    update(hilbertLines(n));
     i++;
 }, 1000);
 
@@ -61,10 +61,10 @@ function update(lines) {
 }
 
 function interpolate(p1, p2, n) {
-    if (n <= 0) return [p1, p2];
+    if (n <= 1) return [p1, p2];
 
     var points = [];
-    for(var i = 0; i < n; i++) {
+    for(var i = 1; i <= n; i++) {
         var di = i / (n - 1);
         points.push([
             p1[0] * (1 - di) + p2[0] * di,
@@ -73,4 +73,11 @@ function interpolate(p1, p2, n) {
     }
 
     return points;
+}
+
+function saw(i, extent) {
+    var min = extent[0];
+    var max = extent[1];
+    var range = max - min;
+    return Math.abs(range - ((i + range) % (range * 2))) + min;
 }
