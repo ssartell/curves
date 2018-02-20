@@ -2,27 +2,28 @@ var hilbert = require('./hilbert');
 var d3 = require('d3');
 var R = require('ramda');
 
-var i = 1;
+var i = 0;
 var timer = d3.interval(() => {
-    var lines = hilbertLines(i++);
+    var n = Math.abs(5 - ((i + 5) % 10)) + 1;
+
+    var lines = hilbertLines(n);
     update(lines);
-    if (i === 7) timer.stop();
+    i++;
 }, 1000);
 
 function hilbertLines(i) {
     var n = Math.pow(2, i);
-    var count = n * n;
 
-    var points = R.range(0, count).map(x => hilbert.d2xy(n, x));
+    var points = R.range(0, n * n).map(x => hilbert.d2xy(n, x));
 
     var normalize = d3.scaleLinear()
         .domain(d3.extent(R.flatten(points)))
         .range([0, 1]);
 
     points = points.map(x => x.map(normalize));
+    var pointsToLines = R.converge(R.zip, [R.init, R.tail]);
 
-    var toLines = R.converge(R.zip, [R.init, R.tail]);
-    return toLines(points);
+    return pointsToLines(points);
 }
 
 function update(lines) {
@@ -46,21 +47,17 @@ function update(lines) {
 
     var path = svg
         .selectAll('path')
-        .data(lines)
-        .attr('d', d => line(d))
-        .attr('fill', 'transparent')
-        .attr('stroke', (d, i) => rainbow(i))
-        .attr('stroke-width', strokeWidth)
-        .attr('stroke-linecap', 'square');
-
-    path.enter().append('path')
-        .attr('d', d => line(d))
-        .attr('fill', 'transparent')
-        .attr('stroke', (d, i) => rainbow(i))
-        .attr('stroke-width', strokeWidth)
-        .attr('stroke-linecap', 'square');
+        .data(lines);
 
     path.exit().remove();
+
+    var allPaths = path.enter().append('path').merge(path);
+
+    allPaths.attr('d', d => line(d))
+        .attr('stroke', (d, i) => rainbow(i))
+        .attr('fill', 'transparent')
+        .attr('stroke-width', strokeWidth)
+        .attr('stroke-linecap', 'square');
 }
 
 function interpolate(p1, p2, n) {
