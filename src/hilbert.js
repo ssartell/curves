@@ -1,4 +1,4 @@
-function d2xy(d, n) {
+function d2xy(n, d) {
     var [x, y] = [0, 0];
     var t = d;
 
