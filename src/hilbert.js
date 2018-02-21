@@ -1,3 +1,5 @@
+var R = require('ramda');
+
 function d2xy(n, d) {
     var [x, y] = [0, 0];
     var t = d;
@@ -34,6 +36,6 @@ function rotate(n, x, y, regionX, regionY) {
 }
 
 module.exports = {
-    d2xy,
-    xy2d
+    d2xy: R.curry(d2xy),
+    xy2d: R.curry(xy2d)
 };

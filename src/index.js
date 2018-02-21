@@ -1,27 +1,43 @@
 var hilbert = require('./hilbert');
+var zOrder = require('./zOrder');
 var d3 = require('d3');
 var R = require('ramda');
 
 var i = 0;
 var min = 1;
 var max = 6;
+var useHilbert = true;
 var timer = d3.interval(() => {
-    var n = saw(i, [min, max]);
-    update(hilbertLines(n));
-    i++;
+    var depth = saw(i, [min, max]);
+    var n = Math.pow(2, depth);
+    if (useHilbert) {
+        update(applyCurve(hilbert.d2xy(n), depth, max));
+        useHilbert = false;
+    } else {
+        update(applyCurve(zOrder.d2xy, depth, max));
+        useHilbert = true;
+        i++;
+    }
+    // update(applyCurve(zOrder.d2xy, depth, max));
+    // i++;
 }, 1000);
 
-function hilbertLines(i) {
+function applyCurve(d2xy, i, max) {
+    // create points
     var n = Math.pow(2, i);
+    var count = n * n;
+    var points = R.range(0, count).map(d2xy);
 
-    var points = R.range(0, n * n).map(x => hilbert.d2xy(n, x));
-
+    // normalize them
     var normalize = d3.scaleLinear()
         .domain(d3.extent(R.flatten(points)))
         .range([0, 1]);
-
     points = points.map(x => x.map(normalize));
-    var pointsToLines = R.converge(R.zip, [R.init, R.tail]);
+    
+    // add hidden points
+    var maxN = Math.pow(2, max);
+    var maxCount = maxN * maxN;
+    points = R.chain(x => R.repeat(x, maxCount / count), points);
 
     return pointsToLines(points);
 }
@@ -30,7 +46,7 @@ function update(lines) {
     var svg = d3.select('svg');
     var width = +svg.attr('width');
     var height = +svg.attr('height');
-    var strokeWidth = 5;
+    var strokeWidth = 8;
     var margin = strokeWidth / 2;
 
     var scale = d3.scaleLinear()
@@ -51,29 +67,21 @@ function update(lines) {
 
     path.exit().remove();
 
-    var allPaths = path.enter().append('path').merge(path);
+    var allPaths = path.enter()
+        .append('path')
+        .attr('d', d => line(d))
+        .merge(path);
 
-    allPaths.attr('d', d => line(d))
-        .attr('stroke', (d, i) => rainbow(i))
+    allPaths.attr('stroke', (d, i) => rainbow(i))
         .attr('fill', 'transparent')
         .attr('stroke-width', strokeWidth)
-        .attr('stroke-linecap', 'square');
+        .attr('stroke-linecap', 'square')
+        .transition()
+            .duration(1000)
+            .attr('d', d => line(d));
 }
 
-function interpolate(p1, p2, n) {
-    if (n <= 1) return [p1, p2];
-
-    var points = [];
-    for(var i = 1; i <= n; i++) {
-        var di = i / (n - 1);
-        points.push([
-            p1[0] * (1 - di) + p2[0] * di,
-            p1[1] * (1 - di) + p2[1] * di,
-        ])
-    }
-
-    return points;
-}
+var pointsToLines = R.converge(R.zip, [R.init, R.tail]);
 
 function saw(i, extent) {
     var min = extent[0];
