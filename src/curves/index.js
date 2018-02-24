@@ -3,41 +3,25 @@ var zOrder = require('./zOrder');
 var d3 = require('d3');
 var R = require('ramda');
 
-var i = 0;
 var min = 1;
 var max = 6;
-var useHilbert = true;
+var i = 0;
 var timer = d3.interval(() => {
-    var depth = saw(i, [min, max]);
+    var depth = triangleWave(i, [min, max]);
     var n = Math.pow(2, depth);
-    if (useHilbert) {
-        update(applyCurve(hilbert.d2xy(n), depth, max));
-        useHilbert = false;
-    } else {
-        update(applyCurve(zOrder.d2xy, depth, max));
-        useHilbert = true;
-        i++;
-    }
-    // update(applyCurve(zOrder.d2xy, depth, max));
-    // i++;
+    update(applyCurve(hilbert.d2xy(n), depth, max));
+    //update(applyCurve(zOrder.d2xy, depth, max));
+    i++;
 }, 1000);
 
-function applyCurve(d2xy, i, max) {
+function applyCurve(d2xy, i, maxI) {
     // create points
-    var n = Math.pow(2, i);
-    var count = n * n;
-    var points = R.range(0, count).map(d2xy);
-
-    // normalize them
-    var normalize = d3.scaleLinear()
-        .domain(d3.extent(R.flatten(points)))
-        .range([0, 1]);
-    points = points.map(x => x.map(normalize));
+    var n = Math.pow(2, i + i);
+    var points = R.range(0, n).map(d2xy);
     
     // add hidden points
-    var maxN = Math.pow(2, max);
-    var maxCount = maxN * maxN;
-    points = R.chain(x => R.repeat(x, maxCount / count), points);
+    var maxN = Math.pow(2, maxI + maxI);
+    points = R.chain(x => R.repeat(x, maxN / n), points);
 
     return pointsToLines(points);
 }
@@ -50,7 +34,7 @@ function update(lines) {
     var margin = strokeWidth / 2;
 
     var scale = d3.scaleLinear()
-        .domain([0, 1])
+        .domain(d3.extent(R.flatten(lines)))
         .range([margin, width - margin]);
 
     var line = d3.line()
@@ -77,15 +61,15 @@ function update(lines) {
         .attr('stroke-width', strokeWidth)
         .attr('stroke-linecap', 'square')
         .transition()
-            .duration(1000)
+            .duration(500)
             .attr('d', d => line(d));
 }
 
 var pointsToLines = R.converge(R.zip, [R.init, R.tail]);
 
-function saw(i, extent) {
+function triangleWave(i, extent) {
     var min = extent[0];
     var max = extent[1];
     var range = max - min;
-    return Math.abs(range - ((i + range) % (range * 2))) + min;
+    return min + Math.abs((i + range) % (range * 2) - range);
 }

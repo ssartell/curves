@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "d3": "^4.13.0",
+    "d3-contour": "^1.1.2",
+    "mnemonist": "^0.18.0",
     "ramda": "^0.25.0"
   }
 }

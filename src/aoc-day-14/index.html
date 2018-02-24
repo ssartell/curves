@@ -1,0 +1,59 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>AOC 2017 Day 14</title>
+
+    <style>
+        html,
+        body,
+        svg {
+            margin: 0;
+            width: 640px;
+            height: 640px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .buttons {
+            width: 300px;
+            position: absolute;
+            left: 642px;
+            top: 0;
+            padding: 20px;
+        }
+
+        .buttons button {
+            display: inline-block;
+            border: 1px solid #ddd;
+            background: #eee;
+            padding: 10px;
+            width: 80px;
+            margin-bottom: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <svg shape-rendering="crispEdges"></svg>
+    <div class="buttons">
+        <h3>Basics</h3>
+        <button id="reset">reset</button>
+        <h3>Colors</h3>
+        <button id="rainbow">rainbow</button>
+        <button id="random">random</button>
+        <h3>Strategies</h3>
+        <button id="top">top</button>
+        <button id="last">last</button>
+        <button id="first">first</button>
+        <button id="circle">circle</button>
+        <button id="diamond">diamond</button>
+        <button id="weird">weird</button>
+    </div>
+    <script src="http://localhost:35729/livereload.js"></script>
+</body>
+
+</html>
