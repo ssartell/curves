@@ -49,7 +49,8 @@ var getUpdates = (blocks, type, draw) => {
                 size = 1;
             }
             if (val === 1) {
-                draw(pos.x, pos.y, regions);
+                var stop = draw(pos.x, pos.y, regions);
+                if (stop) return true;
             }
 
             i++;

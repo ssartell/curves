@@ -33,12 +33,18 @@ var blackAndWhite = d3.scaleLinear()
     .domain([0, 1])
     .range(["black", "white"]);
 
+var stop = false;
 var currentColors = rainbowColors;
 init(grid);
 
 function updateCell(x, y, i) {
     svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`)
         .attr('fill', currentColors(i));
+    if (stop) {
+        stop = false;
+        return true;
+    }
+    return false;
 }
 
 function init(grid) {
@@ -60,39 +66,46 @@ function init(grid) {
 };
 
 
-document.getElementById('reset').onclick = function() {
+document.getElementById('reset').onclick = function () {
     svg.selectAll('g').remove();
     init(grid);
 };
 
-document.getElementById('rainbow').onclick = function() {
-    currentColors = rainbowColors;
+document.getElementById('stop').onclick = function () {
+    stop = true;
 };
 
-document.getElementById('random').onclick = function() {
-    currentColors = randomColors;
-};
+document.getElementsByName("color").forEach(x => x.onchange = function (e) {
+    switch (e.target.value) {
+        case "rainbow":
+            currentColors = rainbowColors;
+            break;
+        case "random":
+            currentColors = randomColors;
+            break;
+    }
+});
 
-document.getElementById('last').onclick = function() {
+document.getElementById('last').onclick = function () {
     day14.getUpdates(blocks, day14.last, updateCell);
 };
 
-document.getElementById('first').onclick = function() {
+document.getElementById('first').onclick = function () {
     day14.getUpdates(blocks, day14.first, updateCell);
 };
 
-document.getElementById('top').onclick = function() {
+document.getElementById('top').onclick = function () {
     day14.getUpdates(blocks, day14.top, updateCell);
 };
 
-document.getElementById('circle').onclick = function() {
+document.getElementById('circle').onclick = function () {
     day14.getUpdates(blocks, day14.circle, updateCell);
 };
 
-document.getElementById('diamond').onclick = function() {
+document.getElementById('diamond').onclick = function () {
     day14.getUpdates(blocks, day14.diamond, updateCell);
 };
 
-document.getElementById('weird').onclick = function() {
+document.getElementById('weird').onclick = function () {
     day14.getUpdates(blocks, day14.weird, updateCell);
 };
