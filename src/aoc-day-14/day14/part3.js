@@ -1,6 +1,7 @@
 var R = require('ramda');
 var knot = require('../day10/part2');
 var M = require('mnemonist');
+var EventEmitter = require('events');
 
 var toHashes = x => R.map(y => knot(`${x}-${y}`), R.range(0, 128));
 var parseInput = R.pipe(R.trim, toHashes);
@@ -8,13 +9,15 @@ var parseInput = R.pipe(R.trim, toHashes);
 var pad = n => ("000" + n).substr(-4);
 var hexToBinary = x => pad(parseInt(x, 16).toString(2));
 
-var getBlocks = R.pipe(parseInput, R.map(R.map(hexToBinary)), R.map(R.chain(R.map(parseInt))));
+var getGrid = R.pipe(parseInput, R.map(R.map(hexToBinary)), R.map(R.chain(R.map(parseInt))));
 
 var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
 var add = (a, b) => R.map(R.sum, R.zip(a, b));
 var inBounds = pos => 0 <= pos.x && pos.x <= 127 && 0 <= pos.y && pos.y <= 127;
 
-var getUpdates = (blocks, type, draw) => {
+var events = new EventEmitter();
+
+var start = (blocks, type) => {
     var regions = 0;
     var visited = {};
 
@@ -35,7 +38,7 @@ var getUpdates = (blocks, type, draw) => {
 
         while (currentRegion === regions) {
             if (queue.size == 0) {
-                return true;
+                return true; // done
             }
             
             var pos = queue.pop();
@@ -49,8 +52,7 @@ var getUpdates = (blocks, type, draw) => {
                 size = 1;
             }
             if (val === 1) {
-                var stop = draw(pos.x, pos.y, regions);
-                if (stop) return true;
+                events.emit('draw', pos.x, pos.y, regions);
             }
 
             i++;
@@ -62,21 +64,41 @@ var getUpdates = (blocks, type, draw) => {
             }
         }
 
-        return false;
+        return false; // not done
     }
 
-    var intervalId = setInterval(function() {
-        var done = mainLoop();
-        if (done)
-            clearInterval(intervalId);
-    }, 0);
+    var stopping = false;
+    events.on('stopping', () => {
+        stopping = true;
+    });
 
-    return regions;
+    var intervalId = setInterval(function() {
+        if (mainLoop() || stopping) {
+            clearInterval(intervalId);
+            events.emit('stop', regions);
+            stopping = false;
+        }
+    }, 0);
 };
 
+function onDraw(f) {
+    events.on('draw', f);
+}
+
+function onStop(f) {
+    events.on('stop', f);
+}
+
+function stop() {
+    events.emit('stopping');
+}
+
 module.exports = {
-    getBlocks,
-    getUpdates,
+    onDraw,
+    onStop,
+    stop,
+    getGrid,
+    start,
     first: {
         start: { x: 63, y: 63 },
         f: (a, b) => a.i < b.i

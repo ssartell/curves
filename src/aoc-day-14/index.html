@@ -35,6 +35,12 @@
             cursor: pointer;
         }
 
+        .controls button:disabled {
+            background: #fff;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
         .controls label {
             display: block;
         }
@@ -43,11 +49,12 @@
 
 <body>
     <svg shape-rendering="crispEdges"></svg>
+
     <div class="controls">
         <h3>Controls</h3>
         <button id="start">start</button>
-        <button id="stop">stop</button>
-        <button id="reset">reset</button>
+        <button id="stop" disabled="disabled">stop</button>
+        <button id="reset" disabled="disabled">reset</button>
 
         <h3>Colors</h3>
         <label>

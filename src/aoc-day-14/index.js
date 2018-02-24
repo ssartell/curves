@@ -3,9 +3,9 @@ var R = require('ramda');
 var day14 = require('./day14/part3');
 
 var input = 'amgozmfv';
-var blocks = day14.getBlocks(input);
+var grid = day14.getGrid(input);
 
-var grid = blocks.map((col, x) => col.map((val, y) => ({ x, y, val })));
+var cells = grid.map((col, x) => col.map((val, y) => ({ x, y, val })));
 
 var n = 128;
 var m = 128;
@@ -33,51 +33,60 @@ var blackAndWhite = d3.scaleLinear()
     .domain([0, 1])
     .range(["black", "white"]);
 
-var stop = false;
-var strategy = day14.top;
-var currentColors = rainbowColors;
-init(grid);
+function init(cells) {
+    var groups = svg
+    .selectAll('g')
+    .data(cells)
+    .enter().append('g');
 
-function updateCell(x, y, i) {
-    svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`)
-        .attr('fill', currentColors(i));
-    if (stop) {
-        stop = false;
-        return true;
-    }
-    return false;
+var rect = groups.selectAll('rect')
+    .data(d => d);
+
+rect.enter().append('rect')
+    .attr('fill', (d, i) => blackAndWhite(d.val))
+    .attr('x', d => scale(d.x))
+    .attr('y', d => scale(d.y))
+    .attr('width', d => 5)
+    .attr('height', d => 5)
+    .attr('height', d => 5);
 }
 
-function init(grid) {
-    var groups = svg
-        .selectAll('g')
-        .data(grid)
-        .enter().append('g');
+// state ************************************************************
+var strategy = day14.top;
+var currentColors = rainbowColors;
 
-    var rect = groups.selectAll('rect')
-        .data(d => d);
+init(cells);
 
-    rect.enter().append('rect')
-        .attr('fill', (d, i) => blackAndWhite(d.val))
-        .attr('x', d => scale(d.x))
-        .attr('y', d => scale(d.y))
-        .attr('width', d => 5)
-        .attr('height', d => 5)
-        .attr('height', d => 5);
+// handlers *********************************************************
+var startButton = document.getElementById('start');
+var stopButton = document.getElementById('stop');
+var resetButton = document.getElementById('reset');
+
+day14.onDraw(function (x, y, i) {
+    svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`)
+        .attr('fill', currentColors(i));
+});
+
+day14.onStop(function() {
+    startButton.removeAttribute('disabled');
+    stopButton.setAttribute('disabled', 'disabled');
+    resetButton.removeAttribute('disabled');
+});
+
+startButton.onclick = function () {
+    day14.start(grid, strategy);
+    startButton.setAttribute('disabled', 'disabled');
+    stopButton.removeAttribute('disabled');
+    resetButton.setAttribute('disabled', 'disabled');
 };
 
-
-document.getElementById('start').onclick = function () {
-    day14.getUpdates(blocks, strategy, updateCell);
+stopButton.onclick = function () {
+    day14.stop();
 };
 
-document.getElementById('stop').onclick = function () {
-    stop = true;
-};
-
-document.getElementById('reset').onclick = function () {
+resetButton.onclick = function () {
     svg.selectAll('g').remove();
-    init(grid);
+    init(cells);
 };
 
 document.getElementsByName("color").forEach(x => x.onchange = function (e) {
