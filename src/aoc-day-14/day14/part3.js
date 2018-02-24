@@ -69,7 +69,7 @@ var getUpdates = (blocks, type, draw) => {
         var done = mainLoop();
         if (done)
             clearInterval(intervalId);
-    }, 10);
+    }, 0);
 
     return regions;
 };

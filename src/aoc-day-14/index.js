@@ -34,6 +34,7 @@ var blackAndWhite = d3.scaleLinear()
     .range(["black", "white"]);
 
 var stop = false;
+var strategy = day14.top;
 var currentColors = rainbowColors;
 init(grid);
 
@@ -66,13 +67,17 @@ function init(grid) {
 };
 
 
-document.getElementById('reset').onclick = function () {
-    svg.selectAll('g').remove();
-    init(grid);
+document.getElementById('start').onclick = function () {
+    day14.getUpdates(blocks, strategy, updateCell);
 };
 
 document.getElementById('stop').onclick = function () {
     stop = true;
+};
+
+document.getElementById('reset').onclick = function () {
+    svg.selectAll('g').remove();
+    init(grid);
 };
 
 document.getElementsByName("color").forEach(x => x.onchange = function (e) {
@@ -86,26 +91,25 @@ document.getElementsByName("color").forEach(x => x.onchange = function (e) {
     }
 });
 
-document.getElementById('last').onclick = function () {
-    day14.getUpdates(blocks, day14.last, updateCell);
-};
-
-document.getElementById('first').onclick = function () {
-    day14.getUpdates(blocks, day14.first, updateCell);
-};
-
-document.getElementById('top').onclick = function () {
-    day14.getUpdates(blocks, day14.top, updateCell);
-};
-
-document.getElementById('circle').onclick = function () {
-    day14.getUpdates(blocks, day14.circle, updateCell);
-};
-
-document.getElementById('diamond').onclick = function () {
-    day14.getUpdates(blocks, day14.diamond, updateCell);
-};
-
-document.getElementById('weird').onclick = function () {
-    day14.getUpdates(blocks, day14.weird, updateCell);
-};
+document.getElementsByName("strategy").forEach(x => x.onchange = function (e) {
+    switch (e.target.value) {
+        case "top":
+            strategy = day14.top;
+            break;
+        case "last":
+            strategy = day14.last;
+            break;
+        case "first":
+            strategy = day14.first;
+            break;
+        case "circle":
+            strategy = day14.circle;
+            break;
+        case "diamond":
+            strategy = day14.diamond;
+            break;
+        case "weird":
+            strategy = day14.weird;
+            break;
+    }
+});

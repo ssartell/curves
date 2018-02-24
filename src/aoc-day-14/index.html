@@ -16,7 +16,7 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .buttons {
+        .controls {
             width: 300px;
             position: absolute;
             left: 642px;
@@ -24,7 +24,7 @@
             padding: 20px;
         }
 
-        .buttons button {
+        .controls button {
             display: inline-block;
             border: 1px solid #ddd;
             background: #eee;
@@ -34,15 +34,21 @@
             margin-right: 10px;
             cursor: pointer;
         }
+
+        .controls label {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
     <svg shape-rendering="crispEdges"></svg>
-    <div class="buttons">
-        <h3>Basics</h3>
-        <button id="reset">reset</button>
+    <div class="controls">
+        <h3>Controls</h3>
+        <button id="start">start</button>
         <button id="stop">stop</button>
+        <button id="reset">reset</button>
+
         <h3>Colors</h3>
         <label>
             <input type="radio" name="color" value="rainbow" checked="checked" /> rainbow
@@ -50,13 +56,26 @@
         <label>
             <input type="radio" name="color" value="random" /> random
         </label>
+
         <h3>Strategies</h3>
-        <button id="top">top</button>
-        <button id="last">last</button>
-        <button id="first">first</button>
-        <button id="circle">circle</button>
-        <button id="diamond">diamond</button>
-        <button id="weird">weird</button>
+        <label>
+            <input type="radio" name="strategy" value="top" checked="checked" /> top
+        </label>
+        <label>
+            <input type="radio" name="strategy" value="last" /> last
+        </label>
+        <label>
+            <input type="radio" name="strategy" value="first" /> first
+        </label>
+        <label>
+            <input type="radio" name="strategy" value="circle" /> circle
+        </label>
+        <label>
+            <input type="radio" name="strategy" value="diamond" /> diamond
+        </label>
+        <label>
+            <input type="radio" name="strategy" value="weird" /> weird
+        </label>
     </div>
     <script src="http://localhost:35729/livereload.js"></script>
 </body>
