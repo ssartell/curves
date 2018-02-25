@@ -49,6 +49,7 @@ function init(cells) {
         .attr('width', d => `${1 / n * 100}%`)
         .attr('height', d => `${1 / m * 100}%`)
         .on('click', d => {
+            if (d.x === undefined && d.y === undefined) return;
             getCell(start.x, start.y).attr('fill', null);
             start = d
             getCell(start.x, start.y).attr('fill', 'red');
