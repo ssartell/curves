@@ -128,5 +128,8 @@ document.getElementsByName("strategy").forEach(x => x.onchange = function (e) {
         case "weird":
             strategy = day14.stratgies.weird;
             break;
+        case "random":
+            strategy = day14.stratgies.random;
+            break;
     }
 });
