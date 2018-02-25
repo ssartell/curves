@@ -62,7 +62,7 @@ function getCell(x, y) {
 // state ************************************************************
 var strategy = day14.stratgies.top;
 var currentColors = rainbowColors;
-var start = {x: 0, y: 0};
+var start = { x: 0, y: 0 };
 
 init(cells);
 
@@ -130,6 +130,12 @@ document.getElementsByName("strategy").forEach(x => x.onchange = function (e) {
             break;
         case "random":
             strategy = day14.stratgies.random;
+            break;
+        case "hilbert":
+            strategy = day14.stratgies.hilbert;
+            break;
+        case "zorder":
+            strategy = day14.stratgies.zOrder;
             break;
     }
 });

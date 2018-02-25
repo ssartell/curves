@@ -2,6 +2,8 @@ var R = require('ramda');
 var knot = require('../day10/part2');
 var M = require('mnemonist');
 var EventEmitter = require('events');
+var hilbert = require('../../curves/hilbert');
+var zOrder = require('../../curves/zOrder');
 
 var toHashes = x => R.map(y => knot(`${x}-${y}`), R.range(0, 128));
 var parseInput = R.pipe(R.trim, toHashes);
@@ -52,11 +54,13 @@ var start = (blocks, strategy, startCell) => {
                 events.emit('draw', pos.x, pos.y, regions);
             }
 
+            i++;
+
             //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
             var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
 
             for (var neighbor of neighbors) {
-                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i++ };
+                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
                 if (inBounds(newPos)) queue.push(newPos);
             }
         }
@@ -98,8 +102,10 @@ var stratgies = {
     circle: (a, b) => Math.hypot(a.x - origin.x, a.y - origin.y) < Math.hypot(b.x - origin.x, b.y - origin.y),
     diamond: (a, b) => Math.abs(a.x - origin.x) + Math.abs(a.y - origin.y) < Math.abs(b.x - origin.x) + Math.abs(b.y - origin.y),
     random: (a, b) => Math.round(Math.random()),
-    weird: (a, b) => a.x + a.y > b.x + b.y
-}
+    weird: (a, b) => a.x + a.y > b.x + b.y,
+    hilbert: (a, b) => hilbert.xy2d(128, a.x, a.y) < hilbert.xy2d(128, b.x, b.y),
+    zOrder: (a, b) => zOrder.xy2d(a.x, a.y) < zOrder.xy2d(b.x, b.y)
+};
 
 module.exports = {
     onDraw,
