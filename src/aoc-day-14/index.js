@@ -35,25 +35,34 @@ var blackAndWhite = d3.scaleLinear()
 
 function init(cells) {
     var groups = svg
-    .selectAll('g')
-    .data(cells)
-    .enter().append('g');
+        .selectAll('g')
+        .data(cells)
+        .enter().append('g');
 
-var rect = groups.selectAll('rect')
-    .data(d => d);
+    var rect = groups.selectAll('rect')
+        .data(d => d);
 
-rect.enter().append('rect')
-    .attr('fill', (d, i) => blackAndWhite(d.val))
-    .attr('x', d => scale(d.x))
-    .attr('y', d => scale(d.y))
-    .attr('width', d => 5)
-    .attr('height', d => 5)
-    .attr('height', d => 5);
+    rect.enter().append('rect')
+        .attr('fill', (d, i) => d.x === start.x && d.y === start.y ? "red" : blackAndWhite(d.val))
+        .attr('x', d => `${d.x / n * 100}%`)
+        .attr('y', d => `${d.y / n * 100}%`)
+        .attr('width', d => `${1 / n * 100}%`)
+        .attr('height', d => `${1 / m * 100}%`)
+        .on('click', d => {
+            getCell(start.x, start.y).attr('fill', null);
+            start = d
+            getCell(start.x, start.y).attr('fill', 'red');
+        });
+}
+
+function getCell(x, y) {
+    return svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`);
 }
 
 // state ************************************************************
-var strategy = day14.top;
+var strategy = day14.stratgies.top;
 var currentColors = rainbowColors;
+var start = {x: 0, y: 0};
 
 init(cells);
 
@@ -63,18 +72,17 @@ var stopButton = document.getElementById('stop');
 var resetButton = document.getElementById('reset');
 
 day14.onDraw(function (x, y, i) {
-    svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`)
-        .attr('fill', currentColors(i));
+    getCell(x, y).attr('fill', currentColors(i));
 });
 
-day14.onStop(function() {
+day14.onStop(function () {
     startButton.removeAttribute('disabled');
     stopButton.setAttribute('disabled', 'disabled');
     resetButton.removeAttribute('disabled');
 });
 
 startButton.onclick = function () {
-    day14.start(grid, strategy);
+    day14.start(grid, strategy, start);
     startButton.setAttribute('disabled', 'disabled');
     stopButton.removeAttribute('disabled');
     resetButton.setAttribute('disabled', 'disabled');
@@ -103,22 +111,22 @@ document.getElementsByName("color").forEach(x => x.onchange = function (e) {
 document.getElementsByName("strategy").forEach(x => x.onchange = function (e) {
     switch (e.target.value) {
         case "top":
-            strategy = day14.top;
+            strategy = day14.stratgies.top;
             break;
         case "last":
-            strategy = day14.last;
+            strategy = day14.stratgies.last;
             break;
         case "first":
-            strategy = day14.first;
+            strategy = day14.stratgies.first;
             break;
         case "circle":
-            strategy = day14.circle;
+            strategy = day14.stratgies.circle;
             break;
         case "diamond":
-            strategy = day14.diamond;
+            strategy = day14.stratgies.diamond;
             break;
         case "weird":
-            strategy = day14.weird;
+            strategy = day14.stratgies.weird;
             break;
     }
 });

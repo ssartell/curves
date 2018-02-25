@@ -17,20 +17,18 @@ var inBounds = pos => 0 <= pos.x && pos.x <= 127 && 0 <= pos.y && pos.y <= 127;
 
 var events = new EventEmitter();
 
-var start = (blocks, type) => {
+var start = (blocks, strategy, startCell) => {
+    origin = startCell;
     var regions = 0;
     var visited = {};
 
     var queue = new M.MinHeap(R.comparator((a, b) => {
         if (a.fromRegion && blocks[a.x][a.y] === 1) return true;
         if (b.fromRegion && blocks[b.x][b.y] === 1) return false;
-        if (blocks[a.x][a.y] > blocks[b.x][b.y]) return true;
-        if (blocks[a.x][a.y] < blocks[b.x][b.y]) return false;
-        return type.f(a, b);
+        return strategy(a, b);
     }));
-    type.start.fromRegion = false;
-    queue.push(type.start);
-    var size = 0;
+    startCell.fromRegion = false;
+    queue.push(startCell);
     var i = 0;
 
     var mainLoop = function () {
@@ -46,20 +44,18 @@ var start = (blocks, type) => {
             if (visited[key]) continue;
             visited[key] = true;
 
-            var val = blocks[pos.x][pos.y];
-            if (val === 1 && !pos.fromRegion) {
+            var currentValue = blocks[pos.x][pos.y];
+            if (currentValue === 1 && !pos.fromRegion) {
                 regions++;
-                size = 1;
             }
-            if (val === 1) {
+            if (currentValue === 1) {
                 events.emit('draw', pos.x, pos.y, regions);
             }
 
             i++;
-            size++;
 
             for (var neighbor of neighbors) {
-                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: val === 1, i: i };
+                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
                 if (inBounds(newPos)) queue.push(newPos);
             }
         }
@@ -93,42 +89,22 @@ function stop() {
     events.emit('stopping');
 }
 
+var origin = {x: 0, y: 0};
+var stratgies = {
+    first: (a, b) => a.i < b.i,
+    last: (a, b) => a.i > b.i,
+    top: (a, b) => (a.y === b.y && a.x < b.x) || (a.y < b.y),
+    circle: (a, b) => Math.hypot(a.x - origin.x, a.y - origin.y) < Math.hypot(b.x - origin.x, b.y - origin.y),
+    diamond: (a, b) => Math.abs(a.x - origin.x) + Math.abs(a.y - origin.y) < Math.abs(b.x - origin.x) + Math.abs(b.y - origin.y),
+    random: (a, b) => false,
+    weird: (a, b) => a.x + a.y > b.x + b.y
+}
+
 module.exports = {
     onDraw,
     onStop,
     stop,
     getGrid,
     start,
-    first: {
-        start: { x: 63, y: 63 },
-        f: (a, b) => a.i < b.i
-    },
-    last: {
-        start: { x: 63, y: 63 },
-        f: (a, b) => a.i > b.i
-    },
-    top: {
-        start: { x: 0, y: 0 },
-        f: (a, b) => (a.y === b.y && a.x < b.x) || (a.y < b.y)
-    },
-    circle: {
-        start: { x: 63, y: 63 },
-        f: function(a, b) { 
-            return Math.hypot(a.x - this.start.x, a.y - this.start.y) < Math.hypot(b.x - this.start.x, b.y - this.start.y); 
-        }
-    },
-    diamond: {
-        start: { x: 63, y: 63 },
-        f: function(a, b) { 
-            return Math.abs(a.x - this.start.x) + Math.abs(a.y - this.start.y) < Math.abs(b.x - this.start.x) + Math.abs(b.y - this.start.y) 
-        }
-    },
-    random: {
-        start: { x: 63, y: 63 },
-        f: (a, b) => false
-    },
-    weird: {
-        start: { x: 0, y: 0 },
-        f: (a, b) => a.x + a.y > b.x + b.y
-    }
+    stratgies
 };
