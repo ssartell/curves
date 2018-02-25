@@ -1,22 +1,19 @@
 var R = require('ramda');
 var knot = require('../day10/part2');
 var M = require('mnemonist');
-var EventEmitter = require('events');
 var hilbert = require('../../curves/hilbert');
 var zOrder = require('../../curves/zOrder');
 
 var toHashes = x => R.map(y => knot(`${x}-${y}`), R.range(0, 128));
 var parseInput = R.pipe(R.trim, toHashes);
-
 var pad = n => ("000" + n).substr(-4);
 var hexToBinary = x => pad(parseInt(x, 16).toString(2));
-
-var getGrid = R.pipe(parseInput, R.map(R.map(hexToBinary)), R.map(R.chain(R.map(parseInt))));
-
 var add = (a, b) => R.map(R.sum, R.zip(a, b));
 var inBounds = pos => 0 <= pos.x && pos.x <= 127 && 0 <= pos.y && pos.y <= 127;
 
-var events = new EventEmitter();
+var origin = {x: 0, y: 0};
+
+var getGrid = R.pipe(parseInput, R.map(R.map(hexToBinary)), R.map(R.chain(R.map(parseInt))));
 
 var start = (blocks, strategy, startCell) => {
     origin = startCell;
@@ -31,70 +28,44 @@ var start = (blocks, strategy, startCell) => {
 
     startCell.fromRegion = false;
     queue.push(startCell);
+
     var i = 0;
+    var buffer = [];
+    var currentRegion = [];
+    while (queue.size) {
+        var pos = queue.pop();
+        var key = `${pos.x},${pos.y}`;
+        if (visited[key]) continue;
+        visited[key] = true;
 
-    var mainLoop = function () {
-        var currentRegion = regions;
-
-        while (currentRegion === regions) {
-            if (queue.size == 0) {
-                return true; // done
-            }
-            
-            var pos = queue.pop();
-            var key = `${pos.x},${pos.y}`;
-            if (visited[key]) continue;
-            visited[key] = true;
-
-            var currentValue = blocks[pos.x][pos.y];
-            if (currentValue === 1 && !pos.fromRegion) {
-                regions++;
-            }
-            if (currentValue === 1) {
-                events.emit('draw', pos.x, pos.y, regions);
-            }
-
-            i++;
-
-            //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
-            var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
-
-            for (var neighbor of neighbors) {
-                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
-                if (inBounds(newPos)) queue.push(newPos);
+        var currentValue = blocks[pos.x][pos.y];
+        if (currentValue === 1 && !pos.fromRegion) {
+            regions++;
+            if (currentRegion.length > 0) {
+                buffer.push(currentRegion);
+                currentRegion = [];
             }
         }
+        if (currentValue === 1) {
+            currentRegion.push({ x: pos.x, y: pos.y, i: regions });
+        }
 
-        return false; // not done
+        i++;
+
+        //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
+        var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
+
+        for (var neighbor of neighbors) {
+            var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
+            if (inBounds(newPos)) queue.push(newPos);
+        }
     }
 
-    var stopping = false;
-    events.on('stopping', () => {
-        stopping = true;
-    });
+    buffer.push(currentRegion);
 
-    var intervalId = setInterval(function() {
-        if (mainLoop() || stopping) {
-            clearInterval(intervalId);
-            events.emit('stop', regions);
-            stopping = false;
-        }
-    }, 0);
+    return buffer;
 };
 
-function onDraw(f) {
-    events.on('draw', f);
-}
-
-function onStop(f) {
-    events.on('stop', f);
-}
-
-function stop() {
-    events.emit('stopping');
-}
-
-var origin = {x: 0, y: 0};
 var stratgies = {
     first: (a, b) => a.i < b.i,
     last: (a, b) => a.i > b.i,
@@ -108,9 +79,6 @@ var stratgies = {
 };
 
 module.exports = {
-    onDraw,
-    onStop,
-    stop,
     getGrid,
     start,
     stratgies

@@ -59,6 +59,29 @@ function getCell(x, y) {
     return svg.select(`g:nth-child(${x + 1})`).select(`rect:nth-child(${y + 1})`);
 }
 
+var shouldStop;
+function draw(regions) {
+    shouldStop = false;
+    var i = 0;
+    var intervalId = setInterval(function() {
+        if (i >= regions.length || shouldStop) {
+            clearInterval(intervalId);
+            stop();
+        }
+        for(var cell of regions[i]) {
+            getCell(cell.x, cell.y).attr('fill', currentColors(cell.i));
+        }
+        i++;
+    }, 0);
+}
+
+function stop() {
+    shouldStop = true;
+    startButton.removeAttribute('disabled');
+    stopButton.setAttribute('disabled', 'disabled');
+    resetButton.removeAttribute('disabled');
+}
+
 // state ************************************************************
 var strategy = day14.stratgies.top;
 var currentColors = rainbowColors;
@@ -71,25 +94,16 @@ var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var resetButton = document.getElementById('reset');
 
-day14.onDraw(function (x, y, i) {
-    getCell(x, y).attr('fill', currentColors(i));
-});
-
-day14.onStop(function () {
-    startButton.removeAttribute('disabled');
-    stopButton.setAttribute('disabled', 'disabled');
-    resetButton.removeAttribute('disabled');
-});
-
 startButton.onclick = function () {
-    day14.start(grid, strategy, start);
+    var regions = day14.start(grid, strategy, start);
+    draw(regions);
     startButton.setAttribute('disabled', 'disabled');
     stopButton.removeAttribute('disabled');
     resetButton.setAttribute('disabled', 'disabled');
 };
 
 stopButton.onclick = function () {
-    day14.stop();
+    stop();
 };
 
 resetButton.onclick = function () {
