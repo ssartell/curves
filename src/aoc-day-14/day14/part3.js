@@ -11,7 +11,6 @@ var hexToBinary = x => pad(parseInt(x, 16).toString(2));
 
 var getGrid = R.pipe(parseInput, R.map(R.map(hexToBinary)), R.map(R.chain(R.map(parseInt))));
 
-var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
 var add = (a, b) => R.map(R.sum, R.zip(a, b));
 var inBounds = pos => 0 <= pos.x && pos.x <= 127 && 0 <= pos.y && pos.y <= 127;
 
@@ -53,10 +52,11 @@ var start = (blocks, strategy, startCell) => {
                 events.emit('draw', pos.x, pos.y, regions);
             }
 
-            i++;
+            //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
+            var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
 
             for (var neighbor of neighbors) {
-                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
+                var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i++ };
                 if (inBounds(newPos)) queue.push(newPos);
             }
         }
