@@ -21,12 +21,12 @@ var start = (blocks, strategy, startCell) => {
     var visited = {};
 
     var queue = new M.MinHeap(R.comparator((a, b) => {
-        if (a.fromRegion && blocks[a.x][a.y] === 1) return true;
-        if (b.fromRegion && blocks[b.x][b.y] === 1) return false;
+        if (a.foundFromCellInRegion && blocks[a.x][a.y] === 1) return true;
+        if (b.foundFromCellInRegion && blocks[b.x][b.y] === 1) return false;
         return strategy(a, b);
     }));
 
-    startCell.fromRegion = false;
+    startCell.foundFromCellInRegion = false;
     queue.push(startCell);
 
     var i = 0;
@@ -39,7 +39,7 @@ var start = (blocks, strategy, startCell) => {
         visited[key] = true;
 
         var currentValue = blocks[pos.x][pos.y];
-        if (currentValue === 1 && !pos.fromRegion) {
+        if (currentValue === 1 && !pos.foundFromCellInRegion) {
             regions++;
             if (currentRegion.length > 0) {
                 buffer.push(currentRegion);
@@ -50,13 +50,12 @@ var start = (blocks, strategy, startCell) => {
             currentRegion.push({ x: pos.x, y: pos.y, i: regions });
         }
 
-        i++;
-
         //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
         var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
 
         for (var neighbor of neighbors) {
-            var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], fromRegion: currentValue === 1, i: i };
+            i++;
+            var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], foundFromCellInRegion: currentValue === 1, i: i };
             if (inBounds(newPos)) queue.push(newPos);
         }
     }
