@@ -15,10 +15,7 @@ var inBounds = pos => 0 <= pos.x && pos.x <= 127 && 0 <= pos.y && pos.y <= 127;
 var run = blocks => {
     var regions = 0;
     var visited = {};
-    var queue = new M.MinHeap(R.comparator((a, b) => 
-        ((a.fromRegion && blocks[a.x][a.y] === 1) || !(b.fromRegion && blocks[b.x][b.y] === 1)) 
-        && (blocks[a.x][a.y] >= blocks[b.x][b.y])
-    ));
+    var queue = new M.MinHeap(R.comparator((a, b) => ((a.fromRegion && blocks[a.x][a.y] === 1) || !(b.fromRegion && blocks[b.x][b.y] === 1))));
     queue.push({x: 0, y: 0, fromRegion: false});
     while(queue.size) {
         var pos = queue.pop();

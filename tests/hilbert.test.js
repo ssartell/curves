@@ -1,5 +1,5 @@
 var assert = require('assert');
-var hilbert = require('../src/hilbert');
+var hilbert = require('../src/curves/hilbert');
 
 describe('hilbert d2xy', function() {    
     describe('N = 2', function() {

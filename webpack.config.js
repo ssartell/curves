@@ -31,6 +31,20 @@ module.exports = [{
   ]
 },
 {
+  entry: './src/contour-art/index.js',
+  devtool: "source-map", 
+  output: {
+    filename: 'index.js',
+    path: path.resolve(__dirname, 'dist/contour-art')
+  },
+  plugins: [
+    new LiveReloadPlugin(),
+    new HtmlWebpackPlugin({
+      template: './src/contour-art/index.html'
+    })
+  ]
+},
+{
   entry: './src/aoc-day-14/index.js',
   devtool: "source-map", 
   output: {

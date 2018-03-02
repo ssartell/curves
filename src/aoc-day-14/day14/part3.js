@@ -50,9 +50,7 @@ var start = (blocks, strategy, startCell) => {
             currentRegion.push({ x: pos.x, y: pos.y, i: regions });
         }
 
-        //var neighbors = [[0, 1], [1, 0], [-1, 0], [0, -1]];
         var neighbors = R.sortBy(Math.random, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
-
         for (var neighbor of neighbors) {
             i++;
             var newPos = { x: pos.x + neighbor[0], y: pos.y + neighbor[1], foundFromCellInRegion: currentValue === 1, i: i };
