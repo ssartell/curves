@@ -16,15 +16,21 @@ var crossProduct = (a, b) => [
 var magnitude = a => Math.hypot.apply(null, a);
 var scale = (a, mag) => a.map(x => x * mag);
 var normalize = a => scale(a, 1 / magnitude(a));
+var clamp = (a, range) => R.map(x => Math.max(range[0], Math.min(range[1], x)), a);
 var up = [0, 1, 0];
+
+var reflect = (a, b) => subtract(a, scale(b, 2 * dotProduct(a, b)));
 
 module.exports = {
     add,
     subtract,
+    multiply,
     dotProduct,
     crossProduct,
     magnitude,
     scale,
     normalize,
+    clamp,
+    reflect,
     up
 };

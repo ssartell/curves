@@ -3,8 +3,8 @@ var d3c = require('d3-contour');
 var R = require('ramda');
 var vec = require('./vector');
 
-var width = 200;
-var height = 200;
+var width = 600;
+var height = 600;
 
 var waves = xy => Math.sin(xy[0] / 4) + Math.cos(xy[1] / 4);
 var random = xy => Math.random() * 10;
@@ -21,15 +21,59 @@ var scene = {
     shapes: [
         {
             type: 'sphere',
-            center: [0, 0, 4],
-            radius: 1.5
+            center: [-1, 0, 4],
+            radius: 1.5,
+            // brass
+            // ambient: [.33, .22, .03],
+            // diffuse: [.78, .57, .11],
+            // specular: [.99, .94, .81],
+            // exponent: 27.8
+
+            // gold
+            ambient: [.25, .20, .07],
+            diffuse: [.75, .61, .23],
+            specular: [.62, .55, .63],
+            exponent: 27.8
         },
         {
             type: 'sphere',
-            center: [.5, .5, 2],
-            radius: .5
+            center: [1, .5, 3],
+            radius: .5,
+            // silver
+            // ambient: [.19, .19, .19],
+            // diffuse: [.51, .51, .51],
+            // specular: [.51, .51, .51],
+            // exponent: 51.2
+            ambient: [.19, .07, .02],
+            diffuse: [.7, .27, .08],
+            specular: [.25, .13, .08],
+            exponent: 12.8
+        },
+        {
+            type: 'sphere',
+            center: [.35, -.35, 1.5],
+            radius: .5,
+            ambient: [.19, .19, .19],
+            diffuse: [.51, .51, .51],
+            specular: [.51, .51, .51],
+            exponent: 51.2
         }
-    ]
+    ],
+    lights: [
+        {
+            position: [-5, 10, 0],
+            intensity: [1, 1, 1]
+        },
+        {
+            position: [8, -2, 4],
+            intensity: [0, 0, 1]
+        },
+        {
+            position: [-2, -5, 2],
+            intensity: [.25, 0, 0]
+        }
+    ],
+    ambient: [.1, .1, .1]
 };
 
 var raytrace = (function () {
@@ -42,7 +86,7 @@ var raytrace = (function () {
     var pixelWidth = camerawidth / (width - 1);
     var pixelHeight = cameraheight / (height - 1);
 
-    function renderPixel(scene, screenCoords) {
+    function computePixelColor(scene, screenCoords) {
         var eyeVector = vec.normalize(vec.subtract(scene.camera.lookAt, scene.camera.position));
         vRight = vec.crossProduct(vec.up, eyeVector);
         vUp = vec.crossProduct(eyeVector, vRight);
@@ -55,12 +99,30 @@ var raytrace = (function () {
             vector: vec.normalize(vec.add(eyeVector, vec.add(xComponent, yComponent)))
         };
 
+        var color = traceRay(scene, ray);
+
+        return vec.scale(vec.clamp(color, [0, 1]), 255)
+    }
+
+    function traceRay(scene, ray, depth) {
+        depth = depth || 0;
+        if (depth > 5) return [0, 0, 0];
+
         var intersections = scene.shapes
             .map(shape => intersectShape(ray, shape))
             .filter(x => Number.isFinite(x.t))
             .sort((a, b) => a.t - b.t);
 
-        return intersections.length > 0 ? intersections[0].t : NaN;
+        if (intersections.length === 0) return [0, 0, 0];
+        var intersection = intersections[0];
+
+        var lighting = colorAtIntersection(scene, intersection);
+
+        var reflectedRay = vec.reflect(ray.vector, intersection.normal);
+
+        var reflection = traceRay(scene, { point: intersection.pointAtTime, vector: reflectedRay }, ++depth);
+
+        return vec.add(lighting, vec.multiply(intersection.shape.specular, reflection));
     }
 
     function intersectShape(ray, shape) {
@@ -68,8 +130,49 @@ var raytrace = (function () {
         var a = vec.dotProduct(ray.vector, ray.vector);
         var b = 2 * vec.dotProduct(ray.vector, L);
         var c = vec.dotProduct(L, L) - shape.radius * shape.radius;
+
         var t = solveQuadratic(a, b, c);
-        return { t, shape };
+        if (!Number.isFinite(t) || t < .001) 
+            return { t: Infinity };
+
+        var pointAtTime = vec.add(ray.point, vec.scale(ray.vector, t));
+        var normal = vec.normalize(vec.subtract(pointAtTime, shape.center));
+
+        // perturb the normal a bit
+        normal = vec.normalize(R.map(x => x + Math.random() / 20, normal));
+
+        return { shape, t, pointAtTime, normal };
+    }
+
+    function colorAtIntersection(scene, intersection) {
+        var color = [0, 0, 0];
+
+        var pointToCamera = vec.normalize(vec.subtract(scene.camera.position, intersection.pointAtTime));
+        var shape = intersection.shape;
+        var normal = intersection.normal;
+        var upCos = vec.dotProduct(normal, [0,1,0]);
+
+        for (var light of scene.lights) {
+            var pointToLight = vec.normalize(vec.subtract(light.position, intersection.pointAtTime));
+
+            // diffuse
+            var cos = Math.max(0, vec.dotProduct(normal, pointToLight));
+            var diffuse = vec.scale(vec.multiply(light.intensity, shape.diffuse), cos);
+            color = vec.add(color, diffuse);
+
+            // specular
+            if (cos > 0) {
+                var reflection = vec.normalize(vec.add(pointToLight, pointToCamera));
+                var reflectionCos = Math.max(0, vec.dotProduct(normal, reflection));
+                var specular = vec.scale(vec.multiply(light.intensity, shape.specular), Math.pow(reflectionCos, shape.exponent));
+                color = vec.add(color, specular);
+            }
+        }
+
+        // ambient
+        color = vec.add(color, vec.multiply(scene.ambient, shape.ambient));
+
+        return color;
     }
 
     function solveQuadratic(a, b, c) {
@@ -88,18 +191,43 @@ var raytrace = (function () {
         }
     }
 
-    return R.curry(renderPixel);
+    return R.curry(computePixelColor);
 }());
 
 // renderContour(createGrid(width, height, raytrace(scene)), 20);
-renderGrid(createGrid(width, height, raytrace(scene)));
+//renderGrid(createGrid(width, height, raytrace(scene)));
+renderCanvas(width, height, raytrace(scene))
+
+function renderCanvas(width, height, f) {
+    var c = document.getElementById('c');
+    c.width = width;
+    c.height = height;
+    //c.style.cssText = `width: ${width * 2}px; height: ${height * 2}px`;
+
+    var ctx = c.getContext('2d'),
+        data = ctx.getImageData(0, 0, width, height);
+
+    var i = 0;
+
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var color = f([x, y]);
+            i = (x * 4) + (y * width * 4),
+                data.data[i + 0] = color[0];
+            data.data[i + 1] = color[1];
+            data.data[i + 2] = color[2];
+            data.data[i + 3] = 255;
+        }
+    }
+
+    ctx.putImageData(data, 0, 0);
+}
 
 function renderGrid(grid) {
-    debugger
     var color = d3.scaleSequential()
         .domain([1, 5])
         .interpolator(d3.interpolateRainbow);
-    
+
     var svg = d3.select('svg');
     var groups = svg
         .selectAll('svg')
