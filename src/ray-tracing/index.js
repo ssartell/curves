@@ -20,15 +20,26 @@ var surfaces = {
 
 var scene = {
     camera: {
-        position: [0, 0, 0],
-        lookAt: [0, 0, 1],
+        position: [0, .5, 0],
+        lookAt: [0, -.1, 1],
         fov: 90
     },
     shapes: [
         {
             type: 'plane',
-            point: [0, -5, 0],
-            normal: [0, 1, 0]
+            point: [0, -1.5, 10],
+            normal: vec.normalize([0, 1, 0]),
+            // brass
+            // ambient: [.33, .22, .03],
+            // diffuse: [.78, .57, .11],
+            // specular: [.99, .94, .81],
+            // exponent: 27.8
+
+            // black plastic
+            ambient: [.0, .0, .0],
+            diffuse: [.01, .01, .01],
+            specular: [.5, .5, .5],
+            exponent: 32
         },
         {
             type: 'sphere',
@@ -60,7 +71,7 @@ var scene = {
         },
         {
             type: 'sphere',
-            center: [.35, -.35, 1.5],
+            center: [.5, -.35, 1.5],
             radius: .5,
             // silver
             ambient: [.19, .19, .19],
@@ -77,12 +88,12 @@ var scene = {
         },
         {
             position: [8, -2, 4],
-            intensity: [0, 0, 1]
+            intensity: [0, 0, .7]
         },
         {
             position: [-2, -5, 2],
             intensity: [.25, 0, 0]
-        }
+        },
     ],
     ambient: [.1, .1, .5]
 };
@@ -115,27 +126,12 @@ var raytrace = (function () {
         return vec.scale(vec.clamp(color, [0, 1]), 255)
     }
 
-    function traceRay(scene, ray, depth) {
+    function traceRay(scene, ray, depth, excludedShapes) {
         depth = depth || 0;
         if (depth > 3) return scene.ambient;
 
-        var intersection = intersectShapes(scene, ray);
-        if (!intersection) return scene.ambient;
-
-        var lighting = colorAtIntersection(scene, intersection);
-
-        var reflectedRay = {
-            point: intersection.pointAtTime,
-            vector: vec.reflect(ray.vector, intersection.normal)
-        };
-
-        var reflection = traceRay(scene, reflectedRay, ++depth);
-
-        return vec.add(lighting, vec.multiply(intersection.shape.specular, reflection));
-    }
-
-    function intersectShapes(scene, ray) {
         var intersections = scene.shapes
+            .filter(shape => excludedShapes === undefined || excludedShapes.indexOf(shape) === -1)
             .map(shape => {
                 switch (shape.type) {
                     case 'sphere':
@@ -147,12 +143,36 @@ var raytrace = (function () {
             .filter(x => x !== null && Number.isFinite(x.t))
             .sort((a, b) => a.t - b.t);
 
-        if (intersections.length === 0) return null;
-        return intersections[0];
+        if (intersections.length === 0) return scene.ambient;
+        var intersection = intersections[0];
+
+        var lighting = colorAtIntersection(scene, intersection);
+
+        var reflectedRay = {
+            point: intersection.pointAtTime,
+            vector: vec.reflect(ray.vector, intersection.normal)
+        };
+
+        var reflection = traceRay(scene, reflectedRay, ++depth, [intersection.shape]);
+
+        return vec.add(lighting, vec.multiply(intersection.shape.specular, reflection));
     }
 
-    function intersectPlane(ray, plane) {
-        return null;
+    function intersectPlane(ray, shape) {
+        var rayToPlane = vec.subtract(shape.point, ray.point);
+        var dot = vec.dotProduct(ray.vector, shape.normal);
+        var t = vec.dotProduct(rayToPlane, shape.normal) / dot;
+        if (t <= .001) return null;
+
+        var normal = shape.normal;
+
+        if (dot > 0) {
+            normal = vec.scale(normal, -1);
+        }
+
+        var pointAtTime = vec.add(ray.point, vec.scale(ray.vector, t));
+
+        return { shape, t, normal, pointAtTime };
     }
 
     function intersectSphere(ray, shape) {
@@ -179,7 +199,6 @@ var raytrace = (function () {
         var pointToCamera = vec.normalize(vec.subtract(scene.camera.position, intersection.pointAtTime));
         var shape = intersection.shape;
         var normal = intersection.normal;
-        var upCos = vec.dotProduct(normal, [0, 1, 0]);
 
         for (var light of scene.lights) {
             var pointToLight = vec.normalize(vec.subtract(light.position, intersection.pointAtTime));
