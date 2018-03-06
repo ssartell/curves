@@ -4,9 +4,19 @@ var xi = 0;
 var yi = 1;
 var zi = 2;
 
-var add = R.zipWith(R.add);
-var subtract = R.zipWith(R.subtract);
-var multiply = R.zipWith(R.multiply);
+var zipWith = function(f) {
+    return function(a, b) {
+        var result = [];
+        for(var i = 0; i < a.length; i++) {
+            result.push(f(a[i], b[i]));
+        }
+        return result;
+    }
+};
+
+var add = zipWith(R.add);
+var subtract = zipWith(R.subtract);
+var multiply = zipWith(R.multiply);
 var dotProduct = R.pipe(multiply, R.sum);
 var crossProduct = (a, b) => [
     a[yi] * b[zi] - a[zi] * b[yi],
