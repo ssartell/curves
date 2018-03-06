@@ -121,23 +121,35 @@ var raytrace = (function () {
         var vRight = vec.crossProduct(vec.up, eyeVector);
         var vUp = vec.crossProduct(eyeVector, vRight);
 
+        var traceScreenCoords = function (x, y) {
+            var xComponent = vec.scale(vRight, (x * pixelWidth) - halfWidth);
+            var yComponent = vec.scale(vUp, halfHeight - (y * pixelHeight));
+
+            var ray = {
+                point: scene.camera.position,
+                vector: vec.normalize(vec.add(eyeVector, vec.add(xComponent, yComponent)))
+            };
+
+            var color = traceRay(scene, ray);
+            var scaledColor = vec.scale(vec.clamp(color, [0, 1]), 255);
+            return scaledColor;
+        };
+
+        function antialias(x, y) {
+            var c1 = traceScreenCoords(x + .25, y + .25);
+            var c2 = traceScreenCoords(x + .75, y + .25);
+            var c3 = traceScreenCoords(x + .25, y + .75);
+            var c4 = traceScreenCoords(x + .75, y + .75);
+
+            return vec.scale(vec.add(vec.add(c1, c2), vec.add(c3, c4)), .25);
+        }
+
         var result = [];
         for (var y = 0; y < height; y++) {
             result[y] = [];
-
             for (var x = 0; x < width; x++) {
-                var xComponent = vec.scale(vRight, (x * pixelWidth) - halfWidth);
-                var yComponent = vec.scale(vUp, halfHeight - (y * pixelHeight));
-
-                var ray = {
-                    point: scene.camera.position,
-                    vector: vec.normalize(vec.add(eyeVector, vec.add(xComponent, yComponent)))
-                };
-
-                var color = traceRay(scene, ray);
-                var scaledColor = vec.scale(vec.clamp(color, [0, 1]), 255);
-
-                result[y][x] = scaledColor;
+                result[y][x] = traceScreenCoords(x, y);
+                // result[y][x] = antialias(x, y);
             }
         }
 
@@ -207,7 +219,7 @@ var raytrace = (function () {
 
         // ambient
         var color = vec.multiply(scene.ambient, shape.ambient);
-        
+
         for (var light of scene.lights) {
             var pointToLight = vec.normalize(vec.subtract(light.position, intersection.pointAtTime));
 
