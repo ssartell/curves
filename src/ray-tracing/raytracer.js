@@ -1,6 +1,3 @@
-var d3 = require('d3');
-var d3c = require('d3-contour');
-var R = require('ramda');
 var vec = require('./vector');
 var surfaces = require('./surfaces');
 
@@ -34,7 +31,7 @@ function renderScene(scene, width, height) {
             vector: vec.normalize(vec.add(eyeVector, vec.add(xComponent, yComponent)))
         };
 
-        var color = traceRay(scene, ray);
+        var color = traceRay(scene, ray, 0);
         var scaledColor = vec.scale(vec.clamp(color, [0, 1]), 255);
         return scaledColor;
     };
@@ -60,7 +57,8 @@ function renderScene(scene, width, height) {
 }
 
 function traceRay(scene, ray, depth, excludedShape) {
-    if (depth > scene.settings.reflectionDepth) return scene.ambient;
+    if (depth > scene.settings.reflectionDepth) 
+        return scene.ambient;
 
     var intersection = atInfinity;
     for (var shape of scene.shapes) {
