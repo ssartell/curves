@@ -2,9 +2,10 @@ var d3 = require('d3');
 var d3c = require('d3-contour');
 var R = require('ramda');
 var vec = require('./vector');
+var surfaces = require('./surfaces');
 
-var width = 600;
-var height = 600;
+var width = 1000;
+var height = 800;
 
 var waves = xy => Math.sin(xy[0] / 4) + Math.cos(xy[1] / 4);
 var random = xy => Math.random() * 10;
@@ -12,16 +13,10 @@ var random = xy => Math.random() * 10;
 var min = R.reduce(R.min, Infinity);
 var max = R.reduce(R.max, -Infinity);
 
-var surfaces = {
-    slightlyRough: (normal, point) => vec.normalize(R.map(x => x + (Math.random() - .5) / 20, normal)),
-    veryRough: (normal, point) => vec.normalize(R.map(x => x + (Math.random() - .5) / 5, normal)),
-    smooth: (normal, point) => normal
-};
-
 var scene = {
     camera: {
         position: [0, .5, 0],
-        lookAt: [0, -.1, 1],
+        lookAt: [0, 0, 1],
         fov: 90
     },
     shapes: [
@@ -148,25 +143,24 @@ var raytrace = (function () {
         for (var y = 0; y < height; y++) {
             result[y] = [];
             for (var x = 0; x < width; x++) {
-                result[y][x] = traceScreenCoords(x, y);
-                // result[y][x] = antialias(x, y);
+                // result[y][x] = traceScreenCoords(x, y);
+                result[y][x] = antialias(x, y);
             }
         }
 
         return result;
     }
 
-    function traceRay(scene, ray, depth, excludedShapes) {
+    function traceRay(scene, ray, depth, excludedShape) {
         if (depth > 3) return scene.ambient;
 
-        var intersection = scene.shapes
-            .filter(shape => excludedShapes === undefined || excludedShapes.indexOf(shape) === -1)
-            .reduce((closest, shape) => {
-                var intersection = intersect[shape.type](ray, shape);
-                return (intersection.t > 0 && intersection.t < closest.t)
-                    ? intersection
-                    : closest;
-            }, atInfinity);
+        var intersection = atInfinity;
+        for(var shape of scene.shapes) {
+            if (shape === excludedShape) continue;
+            var newIntersection = intersect[shape.type](ray, shape);
+            if (newIntersection.t > 0 && newIntersection.t < intersection.t)
+                intersection = newIntersection;
+        }
 
         if (!Number.isFinite(intersection.t)) return scene.ambient;
 
