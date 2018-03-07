@@ -60,13 +60,7 @@ function traceRay(scene, ray, depth, excludedShape) {
     if (depth > scene.settings.reflectionDepth) 
         return scene.ambient;
 
-    var intersection = atInfinity;
-    for (var shape of scene.shapes) {
-        if (shape === excludedShape) continue;
-        var newIntersection = intersect[shape.type](ray, shape);
-        if (newIntersection.t > 0 && newIntersection.t < intersection.t)
-            intersection = newIntersection;
-    }
+    var intersection = intersectShapes(scene, ray, excludedShape);
 
     if (!Number.isFinite(intersection.t)) return scene.ambient;
 
@@ -80,6 +74,17 @@ function traceRay(scene, ray, depth, excludedShape) {
     var reflection = traceRay(scene, reflectedRay, ++depth, intersection.shape);
 
     return vec.add(lighting, vec.multiply(intersection.shape.specular, reflection));
+}
+
+function intersectShapes(scene, ray, excludedShape) {
+    var intersection = atInfinity;
+    for (var shape of scene.shapes) {
+        if (shape === excludedShape) continue;
+        var newIntersection = intersect[shape.type](ray, shape);
+        if (newIntersection.t > 0 && newIntersection.t < intersection.t)
+            intersection = newIntersection;
+    }
+    return intersection;
 }
 
 function intersectPlane(ray, shape) {
@@ -121,7 +126,18 @@ function colorAtIntersection(scene, intersection, ray) {
     var color = vec.multiply(scene.ambient, shape.ambient);
 
     for (var light of scene.lights) {
-        var pointToLight = vec.normalize(vec.subtract(light.position, intersection.pointAtTime));
+        var pointToLight = vec.subtract(light.position, intersection.pointAtTime);
+
+        if (scene.settings.shadows) {
+            var length = vec.magnitude(pointToLight);
+            pointToLight = vec.normalize(pointToLight);
+    
+            var lightIntersection = intersectShapes(scene, { point: intersection.pointAtTime, vector: pointToLight }, intersection.shape);
+            if (lightIntersection.t < length) continue;
+        } else {
+            pointToLight = vec.normalize(pointToLight);
+        }
+        
 
         // diffuse
         var cos = Math.max(0, vec.dotProduct(normal, pointToLight));

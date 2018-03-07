@@ -2,6 +2,7 @@ module.exports = {
     settings: {
         reflectionDepth: 3,
         antiAlias: true,
+        shadows: true,
     },
     camera: {
         position: [0, .5, 0],
