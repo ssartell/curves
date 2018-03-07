@@ -8,7 +8,7 @@ var intersect = {
     plane: intersectPlane
 };
 
-function renderScene(scene, width, height) {
+function* renderScene(scene, width, height) {
     var fovRadians = (scene.camera.fov / 2) * Math.PI / 180;
     var aspectRatio = height / width;
     var halfWidth = Math.tan(fovRadians);
@@ -49,11 +49,12 @@ function renderScene(scene, width, height) {
     for (var y = 0; y < height; y++) {
         result[y] = [];
         for (var x = 0; x < width; x++) {
-            result[y][x] = scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
+            yield scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
+            // result[y][x] = scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
         }
     }
 
-    return result;
+    // return result;
 }
 
 function traceRay(scene, ray, depth, excludedShape) {
