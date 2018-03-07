@@ -52,8 +52,7 @@ function renderScene(scene, width, height) {
     for (var y = 0; y < height; y++) {
         result[y] = [];
         for (var x = 0; x < width; x++) {
-            // result[y][x] = traceScreenCoords(x, y);
-            result[y][x] = antialias(x, y);
+            result[y][x] = scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
         }
     }
 
@@ -61,7 +60,7 @@ function renderScene(scene, width, height) {
 }
 
 function traceRay(scene, ray, depth, excludedShape) {
-    if (depth > 3) return scene.ambient;
+    if (depth > scene.settings.reflectionDepth) return scene.ambient;
 
     var intersection = atInfinity;
     for (var shape of scene.shapes) {

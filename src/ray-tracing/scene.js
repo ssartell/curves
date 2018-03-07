@@ -1,8 +1,12 @@
 module.exports = {
+    settings: {
+        reflectionDepth: 3,
+        antiAlias: true,
+    },
     camera: {
         position: [0, .5, 0],
         lookAt: [0, 0, 1],
-        fov: 90
+        fov: 90,
     },
     shapes: [
         {
