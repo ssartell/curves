@@ -35,31 +35,33 @@ function crossProduct(a, b) {
 }
 
 function magnitude(a) {
-    return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+    var x = a[0], y = a[1], z = a[2]
+    return Math.sqrt(x * x + y * y + z * z);
 }
 
-function scale(a, mag) {
+function scale(a, s) {
     return [
-        a[0] * mag,
-        a[1] * mag,
-        a[2] * mag
+        a[0] * s,
+        a[1] * s,
+        a[2] * s
     ];
 }
 
 function normalize(a) {
-    var inverse = 1 / magnitude(a);
+    var s = 1 / magnitude(a);
     return [
-        a[0] * inverse,
-        a[1] * inverse,
-        a[2] * inverse,
+        a[0] * s,
+        a[1] * s,
+        a[2] * s,
     ];
 }
 
 function clamp(a, range) {
+    var low = range[0], high = range[1];
     return [
-        Math.max(range[0], Math.min(range[1], a[0])),
-        Math.max(range[0], Math.min(range[1], a[1])),
-        Math.max(range[0], Math.min(range[1], a[2]))
+        Math.max(low, Math.min(high, a[0])),
+        Math.max(low, Math.min(high, a[1])),
+        Math.max(low, Math.min(high, a[2]))
     ];
 }
 
