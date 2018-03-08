@@ -5,21 +5,112 @@ module.exports = {
         shadows: true,
     },
     camera: {
-        position: [0, .5, 0],
-        lookAt: [0, 0, 1],
+        position: [-1, 1.5, 0],
+        lookAt: [0, 0, 2],
         fov: 90,
     },
     shapes: [
+        // top
+        {
+            type: 'polygon',
+            vertices: [
+                [.5, 1, 1],
+                [.5, 1, 2],
+                [1.5, 1, 2],
+                [1.5, 1, 1],
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+        // bottom
+        {
+            type: 'polygon',
+            vertices: [
+                [.5, 0, 1],
+                [.5, 0, 2],
+                [1.5, 0, 2],
+                [1.5, 0, 1],
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+        // left
+        {
+            type: 'polygon',
+            vertices: [
+                [.5, 1, 2],
+                [.5, 0, 2],
+                [.5, 0, 1],
+                [.5, 1, 1]
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+        // right
+        {
+            type: 'polygon',
+            vertices: [
+                [1.5, 1, 2],
+                [1.5, 0, 2],
+                [1.5, 0, 1],
+                [1.5, 1, 1]
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+        // front
+        {
+            type: 'polygon',
+            vertices: [
+                [.5, 1, 1],
+                [.5, 0, 1],
+                [1.5, 0, 1],
+                [1.5, 1, 1]
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+        // back
+        {
+            type: 'polygon',
+            vertices: [
+                [.5, 1, 2],
+                [.5, 0, 2],
+                [1.5, 0, 2],
+                [1.5, 1, 2]
+            ],
+            // brass
+            ambient: [.33, .22, .03],
+            diffuse: [.78, .57, .11],
+            specular: [.99, .94, .81],
+            exponent: 27.8,
+            surface: 'slightlyRough'
+        },
+
         {
             type: 'plane',
             point: [0, -1.5, 10],
             normal: [0, 1, 0],
-            // brass
-            // ambient: [.33, .22, .03],
-            // diffuse: [.78, .57, .11],
-            // specular: [.99, .94, .81],
-            // exponent: 27.8
-
             // black plastic
             ambient: [.0, .0, .0],
             diffuse: [.01, .01, .01],
@@ -31,12 +122,6 @@ module.exports = {
             type: 'sphere',
             center: [-1, 0, 4],
             radius: 1.5,
-            // brass
-            // ambient: [.33, .22, .03],
-            // diffuse: [.78, .57, .11],
-            // specular: [.99, .94, .81],
-            // exponent: 27.8
-
             // gold
             ambient: [.25, .20, .07],
             diffuse: [.75, .61, .23],
@@ -48,24 +133,24 @@ module.exports = {
             type: 'sphere',
             center: [1, .5, 3],
             radius: .5,
-            // exponent: 51.2
+            // copper
             ambient: [.19, .07, .02],
             diffuse: [.7, .27, .08],
             specular: [.25, .13, .08],
             exponent: 12.8,
             surface: 'veryRough'
         },
-        {
-            type: 'sphere',
-            center: [.5, -.35, 1.5],
-            radius: .5,
-            // silver
-            ambient: [.19, .19, .19],
-            diffuse: [.51, .51, .51],
-            specular: [.51, .51, .51],
-            exponent: 51.2,
-            surface: 'slightlyRough'
-        }
+        // {
+        //     type: 'sphere',
+        //     center: [.5, -.35, 1.5],
+        //     radius: .5,
+        //     // silver
+        //     ambient: [.19, .19, .19],
+        //     diffuse: [.51, .51, .51],
+        //     specular: [.51, .51, .51],
+        //     exponent: 51.2,
+        //     surface: 'slightlyRough'
+        // }
     ],
     lights: [
         {

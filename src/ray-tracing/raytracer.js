@@ -5,10 +5,13 @@ var atInfinity = { t: Infinity };
 
 var intersect = {
     sphere: intersectSphere,
-    plane: intersectPlane
+    plane: intersectPlane,
+    polygon: intersectPolygon
 };
 
 function* renderScene(scene, width, height) {
+    prepScene(scene);
+
     var fovRadians = (scene.camera.fov / 2) * Math.PI / 180;
     var aspectRatio = height / width;
     var halfWidth = Math.tan(fovRadians);
@@ -50,15 +53,40 @@ function* renderScene(scene, width, height) {
         result[y] = [];
         for (var x = 0; x < width; x++) {
             yield scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
-            // result[y][x] = scene.settings.antiAlias ? antialias(x, y) : traceScreenCoords(x, y);
         }
     }
+}
 
-    // return result;
+function prepScene(scene) {
+    for (var shape of scene.shapes) {
+        if (shape.type === 'polygon') {
+            // var v0 = shape.vertices[0];
+            // var v1 = shape.vertices[1];
+            // var v2 = shape.vertices[2];
+            // shape.point = v0;
+            // shape.edges = [
+            //     vec.subtract(v1, v0),
+            //     vec.subtract(v2, v1),
+            //     vec.subtract(v0, v2),
+            // ];
+            shape.edges = [];
+            for(var i = 0; i < shape.vertices.length; i++) {
+                shape.edges.push(vec.subtract(shape.vertices[(i + 1) % shape.vertices.length], shape.vertices[i]));
+            }
+
+            shape.point = shape.vertices[0];
+            shape.normal = vec.normalize(vec.crossProduct(shape.edges[0], shape.edges[1]));
+            // shape.normal = vec.normalize(vec.crossProduct(shape.edges[0], vec.subtract(v2, v0)));
+        }
+
+        if (shape.type === 'mesh') {
+
+        }
+    }
 }
 
 function traceRay(scene, ray, depth, excludedShape) {
-    if (depth > scene.settings.reflectionDepth) 
+    if (depth > scene.settings.reflectionDepth)
         return scene.ambient;
 
     var intersection = intersectShapes(scene, ray, excludedShape);
@@ -101,6 +129,29 @@ function intersectPlane(ray, shape) {
     return { shape, t, normal, pointAtTime };
 }
 
+function intersectPolygon(ray, shape) {
+    var intersection = intersectPlane(ray, shape);
+    if (!Number.isFinite(intersection.t)) return atInfinity;
+
+    for (var i = 0; i < shape.vertices.length; i++) {
+        var c0 = vec.subtract(intersection.pointAtTime, shape.vertices[i]);
+        if (vec.dotProduct(shape.normal, vec.crossProduct(shape.edges[i], c0)) < 0) return atInfinity;
+    }
+
+    return intersection;
+}
+
+function intersectMesh(ray, shape) {
+    var intersection = atInfinity;
+    for (var i = 0; i < shape.face.length; i++) {
+        var newIntersection = intersectPlane(ray, shape.face[i]);
+        if (newIntersection.t > 0 && newIntersection.t < intersection.t)
+            intersection = newIntersection;
+    }
+
+    return intersection;
+}
+
 function intersectSphere(ray, shape) {
     var L = vec.subtract(ray.point, shape.center);
     var a = vec.dotProduct(ray.vector, ray.vector);
@@ -132,13 +183,13 @@ function colorAtIntersection(scene, intersection, ray) {
         if (scene.settings.shadows) {
             var length = vec.magnitude(pointToLight);
             pointToLight = vec.normalize(pointToLight);
-    
+
             var lightIntersection = intersectShapes(scene, { point: intersection.pointAtTime, vector: pointToLight }, intersection.shape);
             if (lightIntersection.t < length) continue;
         } else {
             pointToLight = vec.normalize(pointToLight);
         }
-        
+
 
         // diffuse
         var cos = Math.max(0, vec.dotProduct(normal, pointToLight));

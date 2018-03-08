@@ -8,7 +8,6 @@ canvas.width = width;
 canvas.height = height;
 
 var ctx = canvas.getContext('2d');
-// var data = ctx.getImageData(0, 0, width, height);
 ctx.webkitImageSmoothingEnabled = false;
 ctx.mozImageSmoothingEnabled = false;
 ctx.imageSmoothingEnabled = false;
