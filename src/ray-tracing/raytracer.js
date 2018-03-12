@@ -10,7 +10,7 @@ var intersect = {
 };
 
 function* renderScene(scene, width, height) {
-    prepScene(scene);
+    prepareScene(scene);
 
     var fovRadians = (scene.camera.fov / 2) * Math.PI / 180;
     var aspectRatio = height / width;
@@ -57,26 +57,15 @@ function* renderScene(scene, width, height) {
     }
 }
 
-function prepScene(scene) {
+function prepareScene(scene) {
     for (var shape of scene.shapes) {
         if (shape.type === 'polygon') {
-            // var v0 = shape.vertices[0];
-            // var v1 = shape.vertices[1];
-            // var v2 = shape.vertices[2];
-            // shape.point = v0;
-            // shape.edges = [
-            //     vec.subtract(v1, v0),
-            //     vec.subtract(v2, v1),
-            //     vec.subtract(v0, v2),
-            // ];
             shape.edges = [];
             for(var i = 0; i < shape.vertices.length; i++) {
                 shape.edges.push(vec.subtract(shape.vertices[(i + 1) % shape.vertices.length], shape.vertices[i]));
             }
-
             shape.point = shape.vertices[0];
             shape.normal = vec.normalize(vec.crossProduct(shape.edges[0], shape.edges[1]));
-            // shape.normal = vec.normalize(vec.crossProduct(shape.edges[0], vec.subtract(v2, v0)));
         }
 
         if (shape.type === 'mesh') {
