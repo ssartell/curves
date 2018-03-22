@@ -1,8 +1,13 @@
 module.exports = {
     settings: {
         reflectionDepth: 3,
-        antiAlias: true,
+        antiAlias: false,
         shadows: true,
+        depthOfField: {
+            enabled: false,
+            radius: .1,
+            samples: 8
+        },
     },
     camera: {
         position: [-1, 1.5, 0],
