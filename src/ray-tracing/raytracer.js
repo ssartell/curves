@@ -70,7 +70,7 @@ function* renderScene(scene, width, height) {
             var vRight = vec.normalize(vec.crossProduct(vec.up, eyeVector));
             var vUp = vec.normalize(vec.crossProduct(eyeVector, vRight));
 
-            for(var t = 0; t <= 2 * Math.PI; t += 2 * Math.PI / samples) {
+            for(var t = 0; t < 2 * Math.PI; t += 2 * Math.PI / samples) {
                 var leftRight = vec.scale(vRight, r * Math.cos(t));
                 var upDown = vec.scale(vUp, r * Math.sin(t));
                 var newPosition = vec.add(position, vec.add(leftRight, upDown));
@@ -82,7 +82,31 @@ function* renderScene(scene, width, height) {
         }
     }
 
+    function stereoscopic(f, r) {
+        return function(position, lookAt, x, y) {
+            var eyeVector = vec.normalize(vec.subtract(lookAt, position));
+            var vRight = vec.normalize(vec.crossProduct(vec.up, eyeVector));
+            var vUp = vec.normalize(vec.crossProduct(eyeVector, vRight));
+
+            var dir = scene.settings.stereoscopic.vr ? -1 : 1;
+
+            if (x < width / 2) {
+                var leftRight = vec.scale(vRight, r * dir);
+                var newPosition = vec.add(position, leftRight);
+                return f(newPosition, lookAt, x * 2, y * 2 - height / 2);
+            } else {
+                var leftRight = vec.scale(vRight, -r * dir);
+                var newPosition = vec.add(position, leftRight);
+                return f(newPosition, lookAt, x * 2 % width, y * 2 - height / 2);
+            }
+        }
+    }
+
     var trace = traceFrom2d;
+
+    if (scene.settings.stereoscopic.enabled) {
+        trace = stereoscopic(trace, scene.settings.stereoscopic.radius);
+    }
 
     if (scene.settings.depthOfField.enabled) {
         trace = depthOfField(trace, scene.settings.depthOfField.radius, scene.settings.depthOfField.samples);

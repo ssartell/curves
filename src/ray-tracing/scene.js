@@ -1,17 +1,22 @@
 module.exports = {
     settings: {
         reflectionDepth: 3,
-        antiAlias: false,
+        antiAlias: true,
         shadows: true,
         depthOfField: {
             enabled: false,
-            radius: .1,
-            samples: 8
+            radius: .15,
+            samples: 4
+        },
+        stereoscopic: {
+            enabled: false,
+            radius: .5,
+            vr: true
         },
     },
     camera: {
-        position: [-1, 1.5, 0],
-        lookAt: [0, 0, 2],
+        position: [-0.5, 1.5, 0],
+        lookAt: [1, .5, 3],
         fov: 90,
     },
     shapes: [

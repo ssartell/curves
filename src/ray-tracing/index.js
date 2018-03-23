@@ -1,18 +1,7 @@
 var raytracer = require('./raytracer');
 var scene = require('./scene');
 
-var canvas = document.getElementById('c');
-var width = canvas.clientWidth;
-var height = canvas.clientHeight;
-canvas.width = width;
-canvas.height = height;
-
-var ctx = canvas.getContext('2d');
-ctx.webkitImageSmoothingEnabled = false;
-ctx.mozImageSmoothingEnabled = false;
-ctx.imageSmoothingEnabled = false;
-
-render(scene);
+render(scene, 'c');
 
 var textarea = document.getElementById('json');
 textarea.value = JSON.stringify(scene, null, 3);
@@ -24,6 +13,26 @@ renderButton.onclick = function () {
 };
 
 function render(scene) {
+    var visual = document.getElementById('visual');
+    
+    if (scene.settings.stereoscopic.enabled) {
+        visual.style.width = '100vw';
+        visual.style.height = '100vh';
+    } else {
+        visual.style = '';
+    }
+
+    var canvas = document.getElementById('c');
+    var width = canvas.clientWidth;
+    var height = canvas.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    var ctx = canvas.getContext('2d');
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
+
     var img = raytracer.renderScene(scene, width, height);
     for (var y = 0; y < height; y++) {
         setTimeout(function (y) {
@@ -37,6 +46,6 @@ function render(scene) {
                 imageData.data[i + 3] = 255;
             }
             ctx.putImageData(imageData, 0, y);
-        }.bind(null, y), 0);
+        }.bind(null, y), 1);
     }
 }
