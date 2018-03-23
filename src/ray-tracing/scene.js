@@ -10,8 +10,8 @@ module.exports = {
         },
         stereoscopic: {
             enabled: false,
-            radius: .5,
-            vr: true
+            radius: .2,
+            vrHeadset: true
         },
     },
     camera: {
